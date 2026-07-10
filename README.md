@@ -4,6 +4,8 @@ Tento repozitář obsahuje rozšíření pro projekt **"Pulling the Right Levers
 
 Toto rozšíření implementuje automatickou grid sweep evaluaci steeringu diverzity a interaktivní HTML dashboard pro vizualizaci výsledků.
 
+Link na report [https://smartgourd.github.io/recsys-sae-diversity-steering/].
+
 ---
 
 ## 📂 Obsah rozšíření (Nové soubory)
