@@ -545,6 +545,20 @@
                 uvidíte populační průměry a přesnostní metriky přepočítané pro aktuální nastavení vůči SAE baseline
                 (síla=0), a pod nimi seznam TOP 10 doporučených filmů.
             </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; max-width: 900px;">
+                <div style="background: rgba(14, 165, 233, 0.03); border: 1px solid rgba(14, 165, 233, 0.15); border-radius: var(--radius-sm); padding: 16px;">
+                    <strong style="color: #38bdf8; font-size: 0.9rem; display: block; margin-bottom: 6px;">🎬 Tag Diversity (Tematická diverzita)</strong>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; display: block;">
+                        Měří obsahovou různorodost doporučení na základě tagů filmu (např. žánry, témata). Počítá se jako průměrná párová kosinová vzdálenost mezi příznakovými vektory (Tag Genome) doporučených filmů. Vyšší hodnota značí, že doporučené filmy jsou žánrově a dějově různorodé.
+                    </span>
+                </div>
+                <div style="background: rgba(168, 85, 247, 0.03); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm); padding: 16px;">
+                    <strong style="color: #c084fc; font-size: 0.9rem; display: block; margin-bottom: 6px;">👥 CF Diversity (Kolaborativní diverzita)</strong>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; display: block;">
+                        Měří diverzitu na základě chování uživatelů. Vychází z latentních vektorů modelu ELSA a počítá se jako průměrná párová vzdálenost reprezentací doporučených filmů. Vyjadřuje, jak moc se doporučené filmy liší z hlediska vzorců sledovanosti komunity (filmy sledované jinými skupinami uživatelů).
+                    </span>
+                </div>
+            </div>
             <div class="demo-grid">
                 <div class="card controls" id="controls-panel">
                     <label for="user-select">Uživatel</label>
