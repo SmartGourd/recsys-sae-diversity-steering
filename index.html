@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steering Diverzity v Doporučovacích Systémech pomocí SAE</title>
+    <meta name="description"
+        content="Interaktivní prezentace výsledků steeringu diverzity v doporučovacích systémech pomocí Sparse Autoencoderů.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-accent: rgba(99, 102, 241, 0.3);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+            --gradient-2: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 3px;
+        }
+
+        /* ── Layout ── */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header {
+            padding: 48px 0 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        section {
+            margin: 48px 0;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title .icon {
+            font-size: 1.3rem;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--shadow);
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--border-accent);
+        }
+
+        /* ── Demo Section ── */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .controls label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            margin-top: 16px;
+        }
+
+        .controls label:first-child {
+            margin-top: 0;
+        }
+
+        select,
+        input[type="range"] {
+            width: 100%;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        select {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 0.92rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:hover {
+            border-color: var(--accent);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        input[type="range"] {
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            outline: none;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-glow);
+            cursor: pointer;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .slider-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* ── Badges ── */
+        .badges {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+
+        .badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .badge.tag {
+            border-color: rgba(14, 165, 233, 0.3);
+            color: #38bdf8;
+        }
+
+        .badge.cf {
+            border-color: rgba(168, 85, 247, 0.3);
+            color: #c084fc;
+        }
+
+        .badge.ol {
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        /* ── Movie list ── */
+        .movie-list {
+            list-style: none;
+        }
+
+        .movie-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .movie-item:last-child {
+            border-bottom: none;
+        }
+
+        .movie-rank {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 24px;
+        }
+
+        .movie-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .movie-genres {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Tables ── */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: var(--bg-glass);
+        }
+
+        tr.highlight td {
+            background: var(--accent-glow);
+            font-weight: 600;
+        }
+
+        td:first-child {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .diff-pos {
+            color: var(--success);
+        }
+
+        .diff-neg {
+            color: var(--danger);
+        }
+
+        .diff-zero {
+            color: var(--text-muted);
+        }
+
+        /* ── Chart ── */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            padding-top: 50%;
+        }
+
+        .chart-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* ── Methodology ── */
+        .method-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .step {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 24px;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .step:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-accent);
+        }
+
+        .step-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+
+        .step h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: #c084fc;
+            overflow-x: auto;
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+
+        .code-comment {
+            color: var(--text-muted);
+        }
+
+        .code-kw {
+            color: #f472b6;
+        }
+
+        .code-fn {
+            color: #38bdf8;
+        }
+
+        .code-str {
+            color: #4ade80;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .loading .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .metric-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .metric-card .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .metric-card .diff {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 2px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .metric-card .label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- ═══ HEADER ═══ -->
+        <header>
+            <h1>Steering Diverzity v RecSys pomocí SAE</h1>
+        </header>
+
+
+        <!-- ═══ 1. INTERACTIVE DEMO ═══ -->
+        <section id="demo-section">
+            <div class="section-title"><span class="icon">🎬</span> Interaktivní Demo Steeringu</div>
+            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem; max-width: 900px;">
+                V tomto demu si můžete vyzkoušet steering přímo na doporučeních vybraných testovacích uživatelů. Zvolte
+                profil uživatele (od nízké po vysokou diverzitu historie), vyberte počet ovládaných neuronů (N) a
+                tažením posuvníku nastavte sílu steeringu (aktivace vybraných diverzifikačních neuronů). Nahoře okamžitě
+                uvidíte populační průměry a přesnostní metriky přepočítané pro aktuální nastavení vůči SAE baseline
+                (síla=0), a pod nimi seznam TOP 10 doporučených filmů.
+            </p>
+            <div class="demo-grid">
+                <div class="card controls" id="controls-panel">
+                    <label for="user-select">Uživatel</label>
+                    <select id="user-select">
+                        <option value="User A (Low Diversity)">User A – Nízká diverzita</option>
+                        <option value="User B (Medium Diversity)">User B – Střední diverzita</option>
+                        <option value="User C (High Diversity)">User C – Vysoká diverzita</option>
+                    </select>
+
+                    <label for="neuron-select">Počet steered neuronů</label>
+                    <select id="neuron-select">
+                        <option value="1">1 neuron</option>
+                        <option value="2">2 neurony</option>
+                        <option value="3">3 neurony</option>
+                        <option value="5">5 neuronů</option>
+                    </select>
+
+                    <div class="slider-header">
+                        <label for="strength-slider">Síla steeringu</label>
+                        <span class="slider-value" id="strength-label">0</span>
+                    </div>
+                    <input type="range" id="strength-slider" min="0" max="16" step="1" value="0">
+
+                    <div style="margin-top:20px">
+                        <div class="badges">
+                            <span class="badge tag" id="badge-tag">Tag Div: —</span>
+                            <span class="badge cf" id="badge-cf">CF Div: —</span>
+                            <span class="badge ol" id="badge-ol">Overlap: —</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="recs-panel">
+                    <!-- Population metrics live preview -->
+                    <div
+                        style="font-weight:600;margin-bottom:12px;color:var(--text-secondary);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em">
+                        Diverzita a věrnost vkusu (Populační průměr)</div>
+                    <div
+                        style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom: 20px;">
+                        <div class="metric-card">
+                            <div class="value" id="pop-tag-val">—</div>
+                            <div class="diff" id="pop-tag-diff">(—)</div>
+                            <div class="label">Tag Div (Avg)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="value" id="pop-cf-val">—</div>
+                            <div class="diff" id="pop-cf-diff">(—)</div>
+                            <div class="label">CF Div (Avg)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="value" id="pop-ol-val">—</div>
+                            <div class="diff" id="pop-ol-diff">(—)</div>
+                            <div class="label">Překryv (Avg)</div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="font-weight:600;margin-bottom:12px;color:var(--text-secondary);font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em">
+                        Přesnostní metriky (Accuracy / Recall)</div>
+                    <div
+                        style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom: 24px;">
+                        <div class="metric-card">
+                            <div class="value" id="pop-recall-val">—</div>
+                            <div class="diff" id="pop-recall-diff">(—)</div>
+                            <div class="label">Recall@20</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="value" id="pop-ndcg-val">—</div>
+                            <div class="diff" id="pop-ndcg-diff">(—)</div>
+                            <div class="label">nDCG@20</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="value" id="pop-precision-val">—</div>
+                            <div class="diff" id="pop-precision-diff">(—)</div>
+                            <div class="label">Precision@20</div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 24px 0;">
+
+                    <div style="font-weight:600;margin-bottom:12px;color:var(--text-secondary);font-size:0.85rem">TOP 10
+                        DOPORUČENÍ</div>
+                    <ul class="movie-list" id="movie-list">
+                        <li class="loading">
+                            <div class="spinner"></div><br>Načítání dat…
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ METODIKA HODNOCENÍ POPULACE ═══ -->
+        <section id="population-methodology-section">
+            <div class="section-title"><span class="icon">⚙️</span> Metodika a stabilita evaluačního vzorku</div>
+            <div
+                style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; line-height: 1.6; margin-bottom: 24px;">
+                <h3 style="margin-bottom: 12px; font-size: 1.15rem; color: var(--accent);">Proč jsme pro evaluaci
+                    použili 2000 uživatelů a ne celou testovací populaci (16 667)?</h3>
+                <p style="margin-bottom: 12px; color: var(--text-secondary); font-size: 0.95rem;">
+                    Pro výpočet Tag Diversity se pro každého jednotlivého uživatele a pro každou konfiguraci musí
+                    vypočítat průměrná párová kosinová vzdálenost mezi tagovými vektory doporučených filmů (což
+                    představuje složitost <code>O(k²)</code> párových výpočtů na uživatele). Pokud bychom evaluovali
+                    všech 16 667 testovacích uživatelů napříč celým grid sweepem (4 počty neuronů × 17 sil steeringu =
+                    68 konfigurací), museli bychom provést a spočítat tagové vzdálenosti pro přibližně 1,13 milionu
+                    doporučených sad.
+                </p>
+            </div>
+        </section>
+
+        <!-- ═══ 2. BASELINE METRICS ═══ -->
+        <section id="baseline-section">
+            <div class="section-title"><span class="icon">📊</span> Srovnání Modelů</div>
+            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem; max-width: 900px;">
+                Tato tabulka srovnává celkovou kvalitu doporučení čisté ELSA baseline, ELSA + SAE (bez steeringu) a
+                vybraných konfigurací se steeringem. Procento v závorkách vyjadřuje relativní rozdíl vůči SAE baseline
+                (ELSA + SAE bez steeringu). Celá tabulka (vyjma baseline modelů) je seřazena sestupně podle sloupce
+                <strong>Poměr (Zisk/Ztráta)</strong>, což je poměr relativního nárůstu Tag Diverzity vůči relativnímu
+                poklesu Recallu. To nám dává přímý pohled na nejefektivnější nastavení.
+            </p>
+            <div class="card table-wrapper">
+                <table id="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Model / Konfigurace</th>
+                            <th>Recall@20</th>
+                            <th>nDCG@20</th>
+                            <th>Precision@20</th>
+                            <th>Tag Diversity</th>
+                            <th>CF Diversity</th>
+                            <th>Overlap</th>
+                            <th>Poměr (Zisk/Ztráta)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparison-body">
+                        <tr>
+                            <td colspan="8" class="loading">
+                                <div class="spinner"></div> Načítání…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ═══ 3. TRADE-OFF CHART ═══ -->
+        <section id="chart-section">
+            <div class="section-title"><span class="icon">📈</span> Trade-off: Recall vs. Diverzita</div>
+            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.95rem; max-width: 900px;">
+                Graf vizualizuje Pareto hranici steeringu diverzity. Osa <strong>x</strong> znázorňuje Tag Diverzitu
+                (čím dále doprava, tím jsou doporučení obsahově různorodější), osa <strong>y</strong> pak Recall@20 (čím
+                výše, tím jsou doporučení přesnější vůči testovací historii). Jednotlivé čáry reprezentují různé počty
+                steered neuronů N=[1, 2, 3, 5], body na čarách odpovídají zvyšující se síle steeringu S=[0, 1, 2, ...,
+                100]. Zelený bod značí čistou ELSA baseline.
+            </p>
+            <div class="card">
+                <div class="chart-container">
+                    <canvas id="tradeoff-chart"></canvas>
+                </div>
+                <div class="chart-legend" id="chart-legend"></div>
+            </div>
+        </section>
+
+        <!-- ═══ 4. HOW TO RUN & WHAT WAS DONE ═══ -->
+        <section id="method-section">
+            <div class="section-title"><span class="icon">⚙️</span> Jak to zprovoznit &amp; Co jsme udělali</div>
+
+            <div
+                style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; line-height: 1.6;">
+                <p style="margin-bottom: 16px;">
+                    Tento projekt staví na původním repozitáři autorů <a
+                        href="https://anonymous.4open.science/r/knots-to-knobs/README.md" target="_blank"
+                        style="color: var(--accent); text-decoration: underline;">knots-to-knobs</a>. Pro zprovoznění
+                    této prezentace a evaluačního skriptu stačí **přidat (zkopírovat) následující tři soubory** do
+                    kořenového adresáře naklonovaného projektu:
+                </p>
+                <ul style="margin-left: 20px; margin-bottom: 20px;">
+                    <li><code>run_evaluation.py</code> – evaluační skript</li>
+                    <li><code>index.html</code> – tato interaktivní prezentace</li>
+                    <li><code>results/steering_evaluation.json</code> – vygenerovaná data (pokud již existují)</li>
+                </ul>
+
+                <h3 style="margin: 20px 0 10px; font-size: 1.15rem; color: var(--accent);">Nové a navržené soubory</h3>
+                <ul style="margin-left: 20px; margin-bottom: 20px;">
+                    <li style="margin-bottom: 10px;">
+                        <strong>1. Evaluační skript (<code>run_evaluation.py</code>)</strong>:
+                        Provede kompletní grid sweep evaluaci a data uloží do
+                        <code>results/steering_evaluation.json</code>. Měří Recall@20, nDCG@20, Precision@20, Tag
+                        Diversity, CF Diversity a Overlap vůči baseline pro:
+                        <ul style="margin-left: 20px; margin-top: 5px;">
+                            <li>Čistou ELSA (bez SAE)</li>
+                            <li>ELSA + SAE passthrough (bez steeringu)</li>
+                            <li>Steering grid sweep: N = [1, 2, 3, 5] neuronů × 17 sil steeringu (0 až 100).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>2. HTML Prezentace (<code>index.html</code>)</strong>:
+                        Tato interaktivní stránka, která načítá výsledky a poskytuje vizuální demo pro 3 testovací
+                        uživatele s různým profilem diverzity.
+                    </li>
+                </ul>
+
+                <h3 style="margin: 20px 0 10px; font-size: 1.15rem; color: var(--accent);">Identifikovaný bug ve
+                    standardizaci (sae.py)</h3>
+                <div
+                    style="background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--danger); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                    <strong>Standardization Bug v <code>sae.py</code>:</strong><br>
+                    Originální kód autorů modifikuje vstupní tenzor in-place (<code>x -= x_mean</code>). To způsobuje,
+                    že <code>compute_loss_dict</code> při tréninku porovnává destandardizovaný výstup se
+                    standardizovaným vstupem. Produkční checkpoint <code>TopKSAE-8192</code> je ale natrénovaný s tímto
+                    bugem, takže i při evaluaci musíme použít stejnou (bugovanou) standardizaci – jinak by se váhy
+                    neshodovaly. Náš evaluační skript toto chování obchází tak, že před předáním do SAE tenzor klonuje
+                    (<code>z_input = batch.clone()</code>), čímž zachová původní interakce čisté pro ELSA baseline bez
+                    nutnosti modifikovat původní kód repozitáře.
+                </div>
+
+                <h3 style="margin: 20px 0 10px; font-size: 1.15rem; color: var(--accent);">Spuštění evaluace</h3>
+                <p style="margin-bottom: 12px;">Pro provedení kompletního sweepu a vygenerování podkladů spusťte:</p>
+                <div class="code-block" style="margin: 10px 0;">
+                    .venv\Scripts\python.exe -u run_evaluation.py
+                </div>
+                <p>Skript automaticky vyhledá optimální diverzifikační neurony na základě korelace a vygeneruje soubor
+                    <code>steering_evaluation.json</code>.
+                </p>
+            </div>
+        </section>
+
+    <!-- ═══ 5. CONCLUSION ═══ -->
+    <section id="conclusion-section">
+        <div class="section-title"><span class="icon">📝</span> Závěrečná zjištění</div>
+        <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; line-height: 1.7;">
+            <p style="margin-bottom: 16px;">
+                Z analýzy trade-off křivek a srovnávací tabulky seřazené podle efektivity (Gain-to-Loss ratio) vyplývají následující klíčové závěry:
+            </p>
+            <ul style="margin-left: 20px; margin-bottom: 16px;">
+                <li style="margin-bottom: 8px;">
+                    <strong>Efektivita vs. degradace přesnosti (vůči SAE baseline)</strong>: Existuje jasná Pareto hranice. Jemný steering (např. N=1 nebo N=2 neuronů při síle S=3 až 5) dokáže posunout průměrnou Tag diverzitu o <strong>+0.2% až +1.7%</strong> s velmi nízkým poklesem přesnosti (Recall@20 klesá pouze o <strong>-0.1% až -1.8%</strong> vůči SAE baseline). Pro středně silný steering (např. N=5, S=10) získáme nárůst Tag diverzity o <strong>+14.4%</strong> za cenu poklesu Recallu o <strong>-17.8%</strong>.
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <strong>Optimální sweet spot</strong>: Vyhodnocený <strong>Poměr (Zisk/Ztráta)</strong> ukazuje, že nejefektivnějšího poměru dosahují konfigurace s <strong>1 až 2 neurony</strong> při nízkých aktivačních hodnotách (síla 2 až 5), kde relativní nárůst diverzity převyšuje relativní ztrátu recallu a poměr dosahuje hodnot <strong>1.2x až 1.9x</strong>.
+                </li>
+                <li style="margin-bottom: 8px;">
+                    <strong>Limitace extrémního steeringu</strong>: Při snaze o agresivní steerování (např. N=5, S=30+) se sice Tag diverzita zvýší o <strong>+29.0%</strong>, ale za cenu propadu Recallu o dramatických <strong>-45.9%</strong> a poklesu překryvu s baseline doporučeními na pouhých <strong>30.0%</strong>. V latentním prostoru SAE jsou v tomto bodě potlačeny všechny ostatní personalizované rysy a doporučení degenerují do generických filmů s vysokým skóre vybraného konceptu.
+                </li>
+            </ul>
+            <p style="margin-bottom: 16px; border-left: 4px solid var(--warning); padding-left: 16px; background: rgba(245, 158, 11, 0.05); border-radius: 4px; padding: 12px 16px;">
+                <strong>Kritické srovnání s čistou ELSA baseline:</strong><br>
+                Zásadním zjištěním je, že <strong>čistá ELSA (bez SAE)</strong> dosahuje výrazně lepších výsledků ve všech směrech – má jak vyšší přesnost (Recall@20 = 0.4305, tj. o <strong>+10.4%</strong> více než SAE baseline), tak i vyšší přirozenou diverzitu (Tag Diversity = 0.2877, tj. o <strong>+2.0%</strong> více než SAE baseline). Průchod latentních reprezentací přes rekonstrukční vrstvu SAE sám o sobě způsobuje obrovskou degradaci. Vůči čisté ELSA baseline proto nejsou zisky ze steeringu nijak oslnivé: abychom vůbec překonali původní diverzitu čisté ELSA (např. na hodnotu 0.2908 při N=2, S=7, což je nárůst o pouhé +1.1% vůči čisté ELSA), musíme obětovat obrovskou část přesnosti – Recall@20 v tomto bodě klesá na 0.3767, což představuje masivní ztrátu <strong>-12.5%</strong> oproti původní čisté ELSA.
+            </p>
+            <p>
+                <strong>Závěr:</strong> Ačkoliv je post-hoc steering latentních konceptů pomocí SAE elegantní vědeckou metodou pro jemné vyvažování vlastností doporučení (např. pro dynamickou kontrolu diverzity ze strany uživatele), v praktickém nasazení naráží na vysokou rekonstrukční ztrátu samotného SAE. Pokud chceme tuto metodu využít v reálném produkčním prostředí, je nutné nejprve vyřešit věrnost rekonstrukce SAE (např. lepším vyladěním hyperparametrů či trénováním nad větší dimenzí latentního prostoru).
+            </p>
+        </div>
+    </section>
+
+        <footer>
+            Projekt: Knots to Knobs — Steering v doporučovacích systémech pomocí Sparse Autoencoderů &middot; ML-25M
+            Dataset &middot; ELSA-1024 + TopKSAE-8192
+        </footer>
+
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        //  Data loading & rendering
+        // ═══════════════════════════════════════════════════════════════
+
+        const STRENGTHS = [0, 1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 35, 40, 45, 50, 70, 100];
+        let DATA = null;
+
+        // ── Demo ──
+        const userSel = document.getElementById('user-select');
+        const neuronSel = document.getElementById('neuron-select');
+        const slider = document.getElementById('strength-slider');
+        const strengthLabel = document.getElementById('strength-label');
+        const movieList = document.getElementById('movie-list');
+        const badgeTag = document.getElementById('badge-tag');
+        const badgeCf = document.getElementById('badge-cf');
+        const badgeOl = document.getElementById('badge-ol');
+
+        slider.max = STRENGTHS.length - 1;
+
+        function updateDemo() {
+            if (!DATA) return;
+            const user = userSel.value;
+            const numN = neuronSel.value;
+            const sIdx = parseInt(slider.value);
+            const strength = STRENGTHS[sIdx];
+            strengthLabel.textContent = strength;
+
+            const ud = DATA.demo[user];
+            if (!ud) return;
+
+            let recs, tagDiv, cfDiv, overlap;
+            if (strength === 0) {
+                recs = ud.baseline.recs;
+                tagDiv = ud.baseline.tag_div;
+                cfDiv = ud.baseline.cf_div;
+                overlap = 1.0;
+            } else {
+                const sd = ud.steered[numN] && ud.steered[numN][String(strength)];
+                if (sd) {
+                    recs = sd.recs; tagDiv = sd.tag_div; cfDiv = sd.cf_div; overlap = sd.overlap;
+                } else {
+                    recs = ud.baseline.recs; tagDiv = ud.baseline.tag_div; cfDiv = ud.baseline.cf_div; overlap = 1.0;
+                }
+            }
+
+            badgeTag.textContent = 'Tag Div: ' + tagDiv.toFixed(4);
+            badgeCf.textContent = 'CF Div: ' + cfDiv.toFixed(4);
+            badgeOl.textContent = 'Overlap: ' + (overlap * 100).toFixed(0) + '%';
+
+            movieList.innerHTML = '';
+            recs.forEach((m, i) => {
+                const li = document.createElement('li');
+                li.className = 'movie-item';
+                li.style.animationDelay = (i * 0.03) + 's';
+                li.innerHTML = `<span class="movie-rank">${i + 1}.</span><div><div class="movie-title">${m.title}</div><div class="movie-genres">${m.genres}</div></div>`;
+                movieList.appendChild(li);
+            });
+
+            // Update Live Population Cards Relative to SAE Baseline
+            const saeBaseline = DATA.sae_passthrough;
+            let popData;
+            if (strength === 0) {
+                popData = saeBaseline;
+            } else {
+                popData = DATA.steering[numN] && DATA.steering[numN][String(strength)];
+            }
+
+            if (popData) {
+                document.getElementById('pop-tag-val').textContent = popData.tag_div.toFixed(4);
+                document.getElementById('pop-tag-diff').innerHTML = diffSpan(popData.tag_div, saeBaseline.tag_div, true);
+
+                document.getElementById('pop-cf-val').textContent = popData.cf_div.toFixed(4);
+                document.getElementById('pop-cf-diff').innerHTML = diffSpan(popData.cf_div, saeBaseline.cf_div, true);
+
+                document.getElementById('pop-ol-val').textContent = (popData.overlap * 100).toFixed(0) + '%';
+                document.getElementById('pop-ol-diff').innerHTML = diffSpan(popData.overlap, saeBaseline.overlap, true);
+
+                document.getElementById('pop-recall-val').textContent = popData.recall.toFixed(4);
+                document.getElementById('pop-recall-diff').innerHTML = diffSpan(popData.recall, saeBaseline.recall, true);
+
+                document.getElementById('pop-ndcg-val').textContent = popData.ndcg.toFixed(4);
+                document.getElementById('pop-ndcg-diff').innerHTML = diffSpan(popData.ndcg, saeBaseline.ndcg, true);
+
+                document.getElementById('pop-precision-val').textContent = popData.precision.toFixed(4);
+                document.getElementById('pop-precision-diff').innerHTML = diffSpan(popData.precision, saeBaseline.precision, true);
+            }
+        }
+
+        userSel.addEventListener('change', updateDemo);
+        neuronSel.addEventListener('change', updateDemo);
+        slider.addEventListener('input', updateDemo);
+
+
+        // ── Comparison Table ──
+        function diffSpan(val, base, pct = true) {
+            if (base === 0) return '';
+            const d = pct ? ((val - base) / base * 100) : (val - base);
+            const abs = Math.abs(d);
+            if (abs < 0.01) return '<span class="diff-zero">(0.0%)</span>';
+            const sign = d >= 0 ? '+' : '';
+            const cls = d >= 0 ? 'diff-pos' : 'diff-neg';
+            return `<span class="${cls}">(${sign}${d.toFixed(1)}%)</span>`;
+        }
+
+        function buildTable() {
+            if (!DATA) return;
+            const body = document.getElementById('comparison-body');
+            const elsa = DATA.clean_elsa;
+            const sae = DATA.sae_passthrough;
+
+            let rows = [];
+
+            // Clean ELSA
+            // Diffs relative to SAE baseline (meaning ELSA is compared to SAE baseline)
+            rows.push({
+                label: '✨ Čistá ELSA (baseline)',
+                d: elsa,
+                hl: true,
+                overlap: '—',
+                diffRef: sae,
+                ratioStr: '—'
+            });
+
+            // SAE passthrough
+            rows.push({
+                label: '🔄 ELSA + SAE (bez steeringu)',
+                d: sae,
+                hl: false,
+                overlap: (sae.overlap * 100).toFixed(1) + '%',
+                diffRef: sae,
+                ratioStr: '—'
+            });
+
+            const steering = DATA.steering;
+            const allConfigs = [];
+            for (const numN of Object.keys(steering)) {
+                for (const str of Object.keys(steering[numN])) {
+                    const e = steering[numN][str];
+                    if (parseInt(str) === 0) continue; // skip 0
+
+                    const gain = (e.tag_div - sae.tag_div) / sae.tag_div;
+                    const loss = (sae.recall - e.recall) / sae.recall;
+                    // Handle division by zero/near-zero
+                    const ratio = loss > 0.0001 ? (gain / loss) : 0;
+
+                    allConfigs.push({
+                        numN,
+                        str: parseInt(str),
+                        ratio,
+                        ...e
+                    });
+                }
+            }
+
+            // Sort steered configs by ratio descending (highest efficiency first)
+            allConfigs.sort((a, b) => b.ratio - a.ratio);
+
+            // Take top 12 steered configs
+            const topSteered = allConfigs.slice(0, 12);
+
+            topSteered.forEach(pick => {
+                rows.push({
+                    label: `⚡ Steering N=${pick.numN}, S=${pick.str}`,
+                    d: pick,
+                    hl: false,
+                    overlap: (pick.overlap * 100).toFixed(1) + '%',
+                    diffRef: sae,
+                    ratioStr: pick.ratio.toFixed(2) + 'x'
+                });
+            });
+
+            body.innerHTML = rows.map(r => {
+                const d = r.d;
+                const ref = r.diffRef;
+                const isSelf = (d === ref && !r.hl);
+                const recallDiff = isSelf ? '' : ' ' + diffSpan(d.recall, ref.recall, true);
+                const ndcgDiff = isSelf ? '' : ' ' + diffSpan(d.ndcg, ref.ndcg, true);
+                const precDiff = isSelf ? '' : ' ' + diffSpan(d.precision, ref.precision, true);
+                const tagDiff = isSelf ? '' : ' ' + diffSpan(d.tag_div, ref.tag_div, true);
+                const cfDiff = isSelf ? '' : ' ' + diffSpan(d.cf_div, ref.cf_div, true);
+
+                // Highlight ratio value
+                const ratioColor = r.ratioStr !== '—' ? 'color: var(--accent); font-weight: 600;' : '';
+
+                return `<tr${r.hl ? ' class="highlight"' : ''}>
+            <td>${r.label}</td>
+            <td>${d.recall.toFixed(4)}${recallDiff}</td>
+            <td>${d.ndcg.toFixed(4)}${ndcgDiff}</td>
+            <td>${d.precision.toFixed(4)}${precDiff}</td>
+            <td>${d.tag_div.toFixed(4)}${tagDiff}</td>
+            <td>${d.cf_div.toFixed(4)}${cfDiff}</td>
+            <td>${r.overlap}</td>
+            <td style="${ratioColor}">${r.ratioStr}</td>
+        </tr>`;
+            }).join('');
+        }
+
+
+        // ── Trade-off Chart (pure Canvas) ──
+        const COLORS = ['#6366f1', '#0ea5e9', '#f59e0b', '#ef4444'];
+
+        function drawChart() {
+            if (!DATA) return;
+            const canvas = document.getElementById('tradeoff-chart');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            const W = rect.width, H = rect.height;
+
+            const pad = { top: 30, right: 30, bottom: 50, left: 65 };
+            const pw = W - pad.left - pad.right;
+            const ph = H - pad.top - pad.bottom;
+
+            const elsa = DATA.clean_elsa;
+            const steering = DATA.steering;
+
+            // Collect all points
+            let allRecall = [elsa.recall], allDiv = [elsa.tag_div];
+            for (const numN of Object.keys(steering)) {
+                for (const str of Object.keys(steering[numN])) {
+                    const e = steering[numN][str];
+                    allRecall.push(e.recall);
+                    allDiv.push(e.tag_div);
+                }
+            }
+
+            const xMin = Math.min(...allDiv) * 0.98;
+            const xMax = Math.max(...allDiv) * 1.02;
+            const yMin = Math.min(...allRecall) * 0.95;
+            const yMax = Math.max(...allRecall) * 1.02;
+
+            function toX(v) { return pad.left + (v - xMin) / (xMax - xMin) * pw; }
+            function toY(v) { return pad.top + ph - (v - yMin) / (yMax - yMin) * ph; }
+
+            // Background
+            ctx.fillStyle = 'transparent';
+            ctx.fillRect(0, 0, W, H);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = pad.top + ph * i / 5;
+                ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+                const x = pad.left + pw * i / 5;
+                ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
+            }
+
+            // Axes labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 5; i++) {
+                const v = xMin + (xMax - xMin) * i / 5;
+                ctx.fillText(v.toFixed(3), pad.left + pw * i / 5, H - pad.bottom + 20);
+            }
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const v = yMin + (yMax - yMin) * (5 - i) / 5;
+                ctx.fillText(v.toFixed(3), pad.left - 8, pad.top + ph * i / 5 + 4);
+            }
+
+            // Axis titles
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '13px Inter, sans-serif';
+            ctx.fillText('Tag Diversity →', W / 2, H - 5);
+            ctx.translate(14, H / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Recall@20 →', 0, 0);
+            ctx.restore();
+
+            // ELSA baseline dot
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath();
+            ctx.arc(toX(elsa.tag_div), toY(elsa.recall), 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 11px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText('ELSA baseline', toX(elsa.tag_div) + 12, toY(elsa.recall) + 4);
+
+            // Draw lines per neuron count
+            const legend = document.getElementById('chart-legend');
+            legend.innerHTML = '<div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>ELSA baseline</div>';
+
+            const neuronKeys = Object.keys(steering).sort((a, b) => parseInt(a) - parseInt(b));
+            neuronKeys.forEach((numN, ci) => {
+                const color = COLORS[ci % COLORS.length];
+                const points = [];
+                for (const str of STRENGTHS.map(String)) {
+                    if (steering[numN][str]) {
+                        const e = steering[numN][str];
+                        points.push({ x: e.tag_div, y: e.recall, s: parseInt(str) });
+                    }
+                }
+                if (points.length === 0) return;
+
+                // Line
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                points.forEach((p, i) => {
+                    const px = toX(p.x), py = toY(p.y);
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+
+                // Dots
+                points.forEach(p => {
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(toX(p.x), toY(p.y), 4, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Label last point
+                const last = points[points.length - 1];
+                ctx.fillStyle = color;
+                ctx.font = '10px JetBrains Mono';
+                ctx.textAlign = 'left';
+                ctx.fillText('S=' + last.s, toX(last.x) + 8, toY(last.y) + 3);
+
+                legend.innerHTML += `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div>N=${numN} neuron${parseInt(numN) > 1 ? 'y' : ''}</div>`;
+            });
+        }
+
+
+        // ── Load data ──
+        fetch('results/steering_evaluation.json')
+            .then(r => r.json())
+            .then(data => {
+                DATA = data;
+                updateDemo();
+                buildTable();
+                drawChart();
+            })
+            .catch(err => {
+                console.error('Failed to load data:', err);
+                document.getElementById('movie-list').innerHTML = '<li class="loading">⚠️ Nepodařilo se načíst results/steering_evaluation.json.<br>Spusťte nejprve: <code>python run_evaluation.py</code></li>';
+            });
+
+        window.addEventListener('resize', () => { if (DATA) drawChart(); });
+    </script>
+
+</body>
+
+</html>
