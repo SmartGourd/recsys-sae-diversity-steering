@@ -530,7 +530,8 @@
         <header>
             <h1>Steering Diverzity v RecSys pomocí SAE</h1>
             <p style="margin-top: 10px; font-size: 0.95rem; color: var(--text-muted);">
-                GitHub repozitář: <a href="https://github.com/SmartGourd/recsys-sae-diversity-steering" target="_blank" style="color: var(--accent); text-decoration: underline;">SmartGourd/recsys-sae-diversity-steering</a>
+                GitHub repozitář: <a href="https://github.com/SmartGourd/recsys-sae-diversity-steering" target="_blank"
+                    style="color: var(--accent); text-decoration: underline;">SmartGourd/recsys-sae-diversity-steering</a>
             </p>
         </header>
 
@@ -545,17 +546,27 @@
                 uvidíte populační průměry a přesnostní metriky přepočítané pro aktuální nastavení vůči SAE baseline
                 (síla=0), a pod nimi seznam TOP 10 doporučených filmů.
             </p>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; max-width: 900px;">
-                <div style="background: rgba(14, 165, 233, 0.03); border: 1px solid rgba(14, 165, 233, 0.15); border-radius: var(--radius-sm); padding: 16px;">
-                    <strong style="color: #38bdf8; font-size: 0.9rem; display: block; margin-bottom: 6px;">🎬 Tag Diversity (Tematická diverzita)</strong>
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; max-width: 900px;">
+                <div
+                    style="background: rgba(14, 165, 233, 0.03); border: 1px solid rgba(14, 165, 233, 0.15); border-radius: var(--radius-sm); padding: 16px;">
+                    <strong style="color: #38bdf8; font-size: 0.9rem; display: block; margin-bottom: 6px;">🎬 Tag
+                        Diversity (Tematická diverzita)</strong>
                     <span style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; display: block;">
-                        Měří obsahovou různorodost doporučení na základě tagů filmu (např. žánry, témata). Počítá se jako průměrná párová kosinová vzdálenost mezi příznakovými vektory (Tag Genome) doporučených filmů. Vyšší hodnota značí, že doporučené filmy jsou žánrově a dějově různorodé.
+                        Měří obsahovou různorodost doporučení na základě tagů filmu (např. žánry, témata). Počítá se
+                        jako průměrná párová kosinová vzdálenost mezi příznakovými vektory (Tag Genome) doporučených
+                        filmů. Vyšší hodnota značí, že doporučené filmy jsou žánrově a dějově různorodé.
                     </span>
                 </div>
-                <div style="background: rgba(168, 85, 247, 0.03); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm); padding: 16px;">
-                    <strong style="color: #c084fc; font-size: 0.9rem; display: block; margin-bottom: 6px;">👥 CF Diversity (Kolaborativní diverzita)</strong>
+                <div
+                    style="background: rgba(168, 85, 247, 0.03); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: var(--radius-sm); padding: 16px;">
+                    <strong style="color: #c084fc; font-size: 0.9rem; display: block; margin-bottom: 6px;">👥 CF
+                        Diversity (Kolaborativní diverzita)</strong>
                     <span style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; display: block;">
-                        Měří diverzitu na základě chování uživatelů. Vychází z latentních vektorů modelu ELSA a počítá se jako průměrná párová vzdálenost reprezentací doporučených filmů. Vyjadřuje, jak moc se doporučené filmy liší z hlediska vzorců sledovanosti komunity (filmy sledované jinými skupinami uživatelů).
+                        Měří diverzitu na základě chování uživatelů. Vychází z latentních vektorů modelu ELSA a počítá
+                        se jako průměrná párová vzdálenost reprezentací doporučených filmů. Vyjadřuje, jak moc se
+                        doporučené filmy liší z hlediska vzorců sledovanosti komunity (filmy sledované jinými skupinami
+                        uživatelů).
                     </span>
                 </div>
             </div>
@@ -665,6 +676,41 @@
                     68 konfigurací), museli bychom provést a spočítat tagové vzdálenosti pro přibližně 1,13 milionu
                     doporučených sad.
                 </p>
+
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 24px 0;">
+
+                <h3 style="margin-bottom: 12px; font-size: 1.15rem; color: var(--accent);">Jak jsme vybírali
+                    diverzifikační neurony pro steering?</h3>
+                <p style="margin-bottom: 12px; color: var(--text-secondary); font-size: 0.95rem;">
+                    Abychom mohli cíleně manipulovat s tematickou diverzitou doporučení, potřebovali jsme v latentním
+                    prostoru Sparse Autoencoderu (SAE) lokalizovat ty latentní rysy (neurony), které mají k diverzitě
+                    nejsilnější vztah. Postupovali jsme následovně:
+                </p>
+                <ol
+                    style="margin-left: 20px; margin-bottom: 12px; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+                    <li style="margin-bottom: 6px;">
+                        Pro reprezentativní skupinu 2000 uživatelů jsme získali latentní vektory interakcí z modelu ELSA
+                        a nechali je projít kodérem TopK-SAE, abychom získali aktivační úrovně všech 8192 skrytých
+                        neuronů.
+                    </li>
+                    <li style="margin-bottom: 6px;">
+                        Pro každého uživatele jsme spočítali reálnou tematickou diverzitu (Tag Diversity) jeho historie
+                        interakcí.
+                    </li>
+                    <li style="margin-bottom: 6px;">
+                        Následně jsme pro každý z 8192 neuronů vypočítali <strong>Pearsonův korelační
+                            koeficient</strong> mezi jeho aktivacemi a Tag diverzitou napříč všemi uživateli.
+                    </li>
+                    <li style="margin-bottom: 6px;">
+                        Neurony jsme seřadili sestupně podle této korelace. Ty s nejvyšší kladnou korelací představují
+                        koncepty, jejichž aktivace přirozeně souvisí s různorodým vkusem.
+                    </li>
+                    <li style="margin-bottom: 6px;">
+                        Při samotném steeringu pak vybraným top N neuronům (např. 1, 2, 3 nebo 5 nejlepším) uměle
+                        vnucujeme vysokou aktivační hodnotu předtím, než dekodér SAE rekonstruuje latentní reprezentaci
+                        zpět pro doporučení v ELSA.
+                    </li>
+                </ol>
             </div>
         </section>
 
@@ -731,7 +777,7 @@
                     Tento projekt staví na původním repozitáři autorů <a
                         href="https://anonymous.4open.science/r/knots-to-knobs/README.md" target="_blank"
                         style="color: var(--accent); text-decoration: underline;">knots-to-knobs</a>. Pro zprovoznění
-                    této prezentace a evaluačního skriptu stačí **přidat (zkopírovat) následující tři soubory** do
+                    této prezentace a evaluačního skriptu stačí přidat (zkopírovat) následující tři soubory do
                     kořenového adresáře naklonovaného projektu:
                 </p>
                 <ul style="margin-left: 20px; margin-bottom: 20px;">
@@ -785,33 +831,62 @@
             </div>
         </section>
 
-    <!-- ═══ 5. CONCLUSION ═══ -->
-    <section id="conclusion-section">
-        <div class="section-title"><span class="icon">📝</span> Závěrečná zjištění</div>
-        <div style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; line-height: 1.7;">
-            <p style="margin-bottom: 16px;">
-                Z analýzy trade-off křivek a srovnávací tabulky seřazené podle efektivity (Gain-to-Loss ratio) vyplývají následující klíčové závěry:
-            </p>
-            <ul style="margin-left: 20px; margin-bottom: 16px;">
-                <li style="margin-bottom: 8px;">
-                    <strong>Efektivita vs. degradace přesnosti (vůči SAE baseline)</strong>: Existuje jasná Pareto hranice. Jemný steering (např. N=1 nebo N=2 neuronů při síle S=3 až 5) dokáže posunout průměrnou Tag diverzitu o <strong>+0.2% až +1.7%</strong> s velmi nízkým poklesem přesnosti (Recall@20 klesá pouze o <strong>-0.1% až -1.8%</strong> vůči SAE baseline). Pro středně silný steering (např. N=5, S=10) získáme nárůst Tag diverzity o <strong>+14.4%</strong> za cenu poklesu Recallu o <strong>-17.8%</strong>.
-                </li>
-                <li style="margin-bottom: 8px;">
-                    <strong>Optimální sweet spot</strong>: Vyhodnocený <strong>Poměr (Zisk/Ztráta)</strong> ukazuje, že nejefektivnějšího poměru dosahují konfigurace s <strong>1 až 2 neurony</strong> při nízkých aktivačních hodnotách (síla 2 až 5), kde relativní nárůst diverzity převyšuje relativní ztrátu recallu a poměr dosahuje hodnot <strong>1.2x až 1.9x</strong>.
-                </li>
-                <li style="margin-bottom: 8px;">
-                    <strong>Limitace extrémního steeringu</strong>: Při snaze o agresivní steerování (např. N=5, S=30+) se sice Tag diverzita zvýší o <strong>+29.0%</strong>, ale za cenu propadu Recallu o dramatických <strong>-45.9%</strong> a poklesu překryvu s baseline doporučeními na pouhých <strong>30.0%</strong>. V latentním prostoru SAE jsou v tomto bodě potlačeny všechny ostatní personalizované rysy a doporučení degenerují do generických filmů s vysokým skóre vybraného konceptu.
-                </li>
-            </ul>
-            <p style="margin-bottom: 16px; border-left: 4px solid var(--warning); padding-left: 16px; background: rgba(245, 158, 11, 0.05); border-radius: 4px; padding: 12px 16px;">
-                <strong>Kritické srovnání s čistou ELSA baseline:</strong><br>
-                Zásadním zjištěním je, že <strong>čistá ELSA (bez SAE)</strong> dosahuje výrazně lepších výsledků ve všech směrech – má jak vyšší přesnost (Recall@20 = 0.4305, tj. o <strong>+10.4%</strong> více než SAE baseline), tak i vyšší přirozenou diverzitu (Tag Diversity = 0.2877, tj. o <strong>+2.0%</strong> více než SAE baseline). Průchod latentních reprezentací přes rekonstrukční vrstvu SAE sám o sobě způsobuje obrovskou degradaci. Vůči čisté ELSA baseline proto nejsou zisky ze steeringu nijak oslnivé: abychom vůbec překonali původní diverzitu čisté ELSA (např. na hodnotu 0.2908 při N=2, S=7, což je nárůst o pouhé +1.1% vůči čisté ELSA), musíme obětovat obrovskou část přesnosti – Recall@20 v tomto bodě klesá na 0.3767, což představuje masivní ztrátu <strong>-12.5%</strong> oproti původní čisté ELSA.
-            </p>
-            <p>
-                <strong>Závěr:</strong> Ačkoliv je post-hoc steering latentních konceptů pomocí SAE elegantní vědeckou metodou pro jemné vyvažování vlastností doporučení (např. pro dynamickou kontrolu diverzity ze strany uživatele), v praktickém nasazení naráží na vysokou rekonstrukční ztrátu samotného SAE. Pokud chceme tuto metodu využít v reálném produkčním prostředí, je nutné nejprve vyřešit věrnost rekonstrukce SAE (např. lepším vyladěním hyperparametrů či trénováním nad větší dimenzí latentního prostoru).
-            </p>
-        </div>
-    </section>
+        <!-- ═══ 5. CONCLUSION ═══ -->
+        <section id="conclusion-section">
+            <div class="section-title"><span class="icon">📝</span> Závěrečná zjištění</div>
+            <div
+                style="background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; line-height: 1.7;">
+                <p style="margin-bottom: 16px;">
+                    Z analýzy trade-off křivek a srovnávací tabulky seřazené podle efektivity (Gain-to-Loss ratio)
+                    vyplývají následující klíčové závěry:
+                </p>
+                <ul style="margin-left: 20px; margin-bottom: 16px;">
+                    <li style="margin-bottom: 8px;">
+                        <strong>Efektivita vs. degradace přesnosti (vůči SAE baseline)</strong>: Existuje jasná Pareto
+                        hranice. Jemný steering (např. N=1 nebo N=2 neuronů při síle S=3 až 5) dokáže posunout průměrnou
+                        Tag diverzitu o <strong>+0.2% až +1.7%</strong> s velmi nízkým poklesem přesnosti (Recall@20
+                        klesá pouze o <strong>-0.1% až -1.8%</strong> vůči SAE baseline). Pro středně silný steering
+                        (např. N=5, S=10) získáme nárůst Tag diverzity o <strong>+14.4%</strong> za cenu poklesu Recallu
+                        o <strong>-17.8%</strong>.
+                    </li>
+                    <li style="margin-bottom: 8px;">
+                        <strong>Optimální sweet spot</strong>: Vyhodnocený <strong>Poměr (Zisk/Ztráta)</strong> ukazuje,
+                        že nejefektivnějšího poměru dosahují konfigurace s <strong>1 až 2 neurony</strong> při nízkých
+                        aktivačních hodnotách (síla 2 až 5), kde relativní nárůst diverzity převyšuje relativní ztrátu
+                        recallu a poměr dosahuje hodnot <strong>1.2x až 1.9x</strong>.
+                    </li>
+                    <li style="margin-bottom: 8px;">
+                        <strong>Limitace extrémního steeringu</strong>: Při snaze o agresivní steerování (např. N=5,
+                        S=30+) se sice Tag diverzita zvýší o <strong>+29.0%</strong>, ale za cenu propadu Recallu o
+                        dramatických <strong>-45.9%</strong> a poklesu překryvu s baseline doporučeními na pouhých
+                        <strong>30.0%</strong>. V latentním prostoru SAE jsou v tomto bodě potlačeny všechny ostatní
+                        personalizované rysy a doporučení degenerují do generických filmů s vysokým skóre vybraného
+                        konceptu.
+                    </li>
+                </ul>
+                <p
+                    style="margin-bottom: 16px; border-left: 4px solid var(--warning); padding-left: 16px; background: rgba(245, 158, 11, 0.05); border-radius: 4px; padding: 12px 16px;">
+                    <strong>Kritické srovnání s čistou ELSA baseline:</strong><br>
+                    Zásadním zjištěním je, že <strong>čistá ELSA (bez SAE)</strong> dosahuje výrazně lepších výsledků ve
+                    všech směrech – má jak vyšší přesnost (Recall@20 = 0.4305, tj. o <strong>+10.4%</strong> více než
+                    SAE baseline), tak i vyšší přirozenou diverzitu (Tag Diversity = 0.2877, tj. o
+                    <strong>+2.0%</strong> více než SAE baseline). Průchod latentních reprezentací přes rekonstrukční
+                    vrstvu SAE sám o sobě způsobuje obrovskou degradaci. Vůči čisté ELSA baseline proto nejsou zisky ze
+                    steeringu nijak oslnivé: abychom vůbec překonali původní diverzitu čisté ELSA (např. na hodnotu
+                    0.2908 při N=2, S=7, což je nárůst o pouhé +1.1% vůči čisté ELSA), musíme obětovat obrovskou část
+                    přesnosti – Recall@20 v tomto bodě klesá na 0.3767, což představuje masivní ztrátu
+                    <strong>-12.5%</strong> oproti původní čisté ELSA.
+                </p>
+                <p>
+                    <strong>Závěr:</strong> Ačkoliv je post-hoc steering latentních konceptů pomocí SAE elegantní
+                    vědeckou metodou pro jemné vyvažování vlastností doporučení (např. pro dynamickou kontrolu diverzity
+                    ze strany uživatele), v praktickém nasazení naráží na vysokou rekonstrukční ztrátu samotného SAE.
+                    Pokud chceme tuto metodu využít v reálném produkčním prostředí, je nutné nejprve vyřešit věrnost
+                    rekonstrukce SAE (např. lepším vyladěním hyperparametrů či trénováním nad větší dimenzí latentního
+                    prostoru).
+                </p>
+            </div>
+        </section>
 
         <footer>
             Projekt: Knots to Knobs — Steering v doporučovacích systémech pomocí Sparse Autoencoderů &middot; ML-25M
